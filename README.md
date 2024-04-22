@@ -1,7 +1,7 @@
 # Dependencies
 ```
 sudo apt update
-sudo apt install ros-<your_ros2_distro>-compressed-image-transport
+sudo apt install ros-$ROS_DISTRO-compressed-image-transport
 ```
 
 ## Study log
