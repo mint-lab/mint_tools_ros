@@ -27,6 +27,7 @@ setup(
             'video_player = mint_tools_ros2.video_player:main',
             'compress_img = mint_tools_ros2.compress_img:main',
             'decompress_img = mint_tools_ros2.decompress_img:main',
+            'image_viewer = mint_tools_ros2.image_viewer:main',
         ],
     },
 )
