@@ -1,6 +1,9 @@
 from setuptools import find_packages, setup
+from glob import glob
+import os
 
 package_name = 'mint_tools_ros2'
+SHARE_DIR = os.path.join("share", package_name)
 
 setup(
     name=package_name,
@@ -10,6 +13,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+         (os.path.join(SHARE_DIR, "launch"), glob(os.path.join("launch", "*.launch.py"))),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -20,7 +24,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'video_player = mint_tools_ros2.video_player:main'
+            'video_player = mint_tools_ros2.video_player:main',
+            'compress_img = mint_tools_ros2.compress_img:main',
+            'decompress_img = mint_tools_ros2.decompress_img:main',
         ],
     },
 )
