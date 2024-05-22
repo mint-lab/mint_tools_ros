@@ -1,0 +1,6 @@
+# Requirements for Python scripts
+numpy
+matplotlib
+rosbags
+folium
+pyproj

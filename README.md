@@ -1,10 +1,21 @@
-# Dependencies
+# MINT Tools for ROS 2
+**mint_tools_ros** is a collection of useful tools and utilities for ROS 2 and implemented by [MINT Lab](https://mint-lab.github.io/).
+
+
+
+## Tools
+TODO
+
+
+
+## How to Install
+TODO
 ```
 sudo apt update
 sudo apt install ros-$ROS_DISTRO-compressed-image-transport
 ```
 
-## Study log
-### 3/31 : about compressed images
-- When save rosbag with mp4(1920x1080, 22.7MB),
-    - rgb_raw: 1.6GB, rgb_compressed: 140.8MB, gray_image: 527.5MB, gray_compressed: 130MB
+
+
+## Use cases
+TODO
