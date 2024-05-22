@@ -28,7 +28,7 @@ if __name__ == '__main__':
     fig = plt.figure()
     plt.plot(xyz_data[:, 1], xyz_data[:, 2], color=args.line_color, linewidth=args.line_weight)
     plt.xlabel('X [m]')
-    plt.ylabel('X [m]')
+    plt.ylabel('Y [m]')
     plt.grid(True)
     plt.axis('equal')
     plt.tight_layout()
