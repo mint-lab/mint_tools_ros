@@ -28,7 +28,7 @@ if __name__ == '__main__':
     parser.add_argument('--output_file',  '-o', type=str,   default='gps_map_viewer.html', help='Output HTML file')
     parser.add_argument('--zoom_level',   '-z', type=int,   default=18, help='The initial zoom level of the map')
     parser.add_argument('--line_color',   '-c', type=str,   default='red', help='GPS line color')
-    parser.add_argument('--line_weight',  '-w', type=float, default=2.5, help='GPS line weight')
+    parser.add_argument('--line_weight',  '-w', type=float, default=2, help='GPS line weight')
     args = parser.parse_args()
 
     # Load GPS data from a ROS bag file
