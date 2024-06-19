@@ -14,7 +14,7 @@ class EKF_node(Node):
             '/ublox/fix',
             self.fix_callback,
             10)
-        
+
         self.pub_pose = self.create_publisher(PoseStamped, '/ekf_joint', 10)
         self.init_latlong = (37.5586385, 127.04869079999999)
         self.init_position = np.array(self.conv_latlon_to_utm(*self.init_latlong))
