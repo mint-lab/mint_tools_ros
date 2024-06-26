@@ -93,7 +93,8 @@ class MetricViewer(Node):
             [], maxlen=self.buffer_size
         )  # for expression of gps mode
 
-        self.raw_plot = self.ax.scatter([], [], c=self.raw_colors) # Raw GPS data
+        # Raw GPS data
+        self.raw_plot = self.ax.scatter([], [], c=self.raw_colors)
         (self.localizer_plot,) = self.ax.plot(
             [], [], "m-", linewidth=self.line_width, label="Localized data"
         )
@@ -156,9 +157,8 @@ class MetricViewer(Node):
         elif raw_msg.status.status == 1:
             self.color = self.gps_mode["DGPS"]  # red
         elif raw_msg.status.status == 2:
-            if (
-                raw_msg.position_covariance[8] < 0.02
-            ):  # estimated position error in driver.py @ nmea_navsat_driver
+            # estimated position error in driver.py @ nmea_navsat_driver
+            if raw_msg.position_covariance[8] < 0.02:
                 self.color = self.gps_mode["RTK-FIX"]  # green
             else:
                 self.color = self.gps_mode["RTK-FLOAT"]  # blue
