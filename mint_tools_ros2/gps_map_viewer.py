@@ -16,7 +16,7 @@ def load_gps_data(bag_file, topic_name):
         connections = [x for x in reader.connections if x.topic == topic_name]
         for connection, timestamp, rawdata in reader.messages(connections=connections):
             msg = reader.deserialize(rawdata, connection.msgtype)
-            gps_data.append((timestamp, msg.latitude, msg.longitude, msg.altitude, msg.position_covariance))
+            gps_data.append((timestamp, msg.latitude, msg.longitude, msg.altitude, msg.position_covariance, msg.status.status))
     return gps_data
 
 

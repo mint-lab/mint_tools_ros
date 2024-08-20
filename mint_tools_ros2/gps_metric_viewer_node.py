@@ -270,9 +270,9 @@ class MetricViewer(Node):
 
         self.ax.relim()
         self.ax.autoscale_view()
-        # self.ax.set_xbound(min(data_x) - 1, max(data_x) + 1)
-        # self.ax.set_ybound(min(data_y) - 1, max(data_y) + 1)
-        self.ax.set_aspect("equal")
+        self.ax.set_xbound(min(data_x) - 1, max(data_x) + 1)
+        self.ax.set_ybound(min(data_y) - 1, max(data_y) + 1)
+        # self.ax.set_aspect("equal")
 
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
