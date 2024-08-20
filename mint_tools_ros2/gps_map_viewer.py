@@ -1,6 +1,5 @@
 from pathlib import Path
 from rosbags.highlevel import AnyReader
-from rosbags.typesys import Stores, get_typestore
 import folium
 import argparse
 
@@ -12,7 +11,7 @@ def load_gps_data(bag_file, topic_name):
         topic_name = '/' + topic_name
 
     gps_data = []
-    with AnyReader([bag_path], default_typestore=get_typestore(Stores.ROS2_HUMBLE)) as reader:
+    with AnyReader([bag_path]) as reader:
         connections = [x for x in reader.connections if x.topic == topic_name]
         for connection, timestamp, rawdata in reader.messages(connections=connections):
             msg = reader.deserialize(rawdata, connection.msgtype)

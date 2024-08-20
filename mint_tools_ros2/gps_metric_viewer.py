@@ -71,7 +71,8 @@ if __name__ == "__main__":
                 )
             )
             for time, lat, lon, alt, cov, mode in gps_data
-        ]
+        ],
+        dtype=object,
     )
     xyz_data[:, 0:4] -= xyz_data[0, 0:4]  # Set the first data as the origin
 
