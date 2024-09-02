@@ -89,6 +89,12 @@ if __name__ == "__main__":
     plt.grid(True)
     plt.axis("equal")
     plt.tight_layout()
+    plt.legend(
+        handles=[
+            plt.Line2D([0], [0], marker="o", linestyle="None", color=color, label=mode)
+            for mode, color in gps_mode.items()
+        ]
+    )
 
     # Draw the 2D time-Z plot
     fig = plt.figure()
@@ -102,6 +108,12 @@ if __name__ == "__main__":
     plt.ylabel("Z [m]")
     plt.grid(True)
     plt.tight_layout()
+    plt.legend(
+        handles=[
+            plt.Line2D([0], [0], marker="o", linestyle="None", color=color, label=mode)
+            for mode, color in gps_mode.items()
+        ]
+    )
 
     # Draw the 3D XYZ plot
     fig = plt.figure()
@@ -118,5 +130,11 @@ if __name__ == "__main__":
     ax.set_zlabel("Z [m]")
     ax.grid(True)
     plt.tight_layout()
+    ax.legend(
+        handles=[
+            plt.Line2D([0], [0], marker="o", linestyle="None", color=color, label=mode)
+            for mode, color in gps_mode.items()
+        ]
+    )
 
     plt.show()
