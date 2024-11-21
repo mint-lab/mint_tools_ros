@@ -159,18 +159,18 @@ def parse_args():
 
 if __name__ == "__main__":
     topic_filter = {
-        "RTK GPS velocity (m/s)": "/ublox/vel",
-        "Normal GPS velocity (m/s)": "/ascen/vel",
-        "AHRS quaternion (rad)": "/imu/data",
-        "AHRS magnetic field (T)": "/imu/mag",
-        "ZED pressure (Pa)": "/zed/zed_node/atm_press",
-        "ZED quaternion (rad)": "/zed/zed_node/imu/data",
-        "ZED magnetic field (T)": "/zed/zed_node/imu/mag",
-        "Old ZED pressure (Pa)": "/zed2/zed_node/pressure",
-        "Old ZED quaternion (rad)": "/zed2/zed_node/imu/data",
-        "Old ZED magnetic field (T)": "/zed2/zed_node/imu/mag",
-        "Barometer pressure (hPa)": "/magic_wand/pressure",
-        "Barometer temperature (\N{DEGREE SIGN}C)": "/magic_wand/temperature",
+        "RTK GPS velocity [m/s]": "/ublox/vel",
+        "Normal GPS velocity [m/s]": "/ascen/vel",
+        "AHRS quaternion [rad]": "/imu/data",
+        "AHRS magnetic field [uT]": "/imu/mag",
+        "ZED pressure [Pa]": "/zed/zed_node/atm_press",
+        "ZED quaternion [rad]": "/zed/zed_node/imu/data",
+        "ZED magnetic field [uT]": "/zed/zed_node/imu/mag",
+        "Old ZED pressure [hPa]": "/zed2/zed_node/pressure",
+        "Old ZED quaternion [rad]": "/zed2/zed_node/imu/data",
+        "Old ZED magnetic field [uT]": "/zed2/zed_node/imu/mag",
+        "Barometer pressure [hPa]": "/magic_wand/pressure",
+        "Barometer temperature [\N{DEGREE SIGN}C]": "/magic_wand/temperature",
     }
 
     visualization_options = {
@@ -232,14 +232,13 @@ if __name__ == "__main__":
             for i in range(3):
                 ax.plot(
                     [time - dataset[value][0][0] for time, *_ in dataset[value]],
-                    [data[i] for _, data, _ in dataset[value]],
+                    [data[i] * 1e6 for _, data, _ in dataset[value]],
                     label=f"{['x', 'y', 'z'][i]}",
                     color=["red", "green", "blue"][i],
                     linewidth=visualization_options["line_width"],
                 )
-            ax.yaxis.set_major_locator(MultipleLocator(0.0005))
-            ax.yaxis.set_major_formatter(FormatStrFormatter("%5.4f"))
-            ax.yaxis.set_minor_locator(MultipleLocator(0.0001))
+            ax.yaxis.set_major_locator(MultipleLocator(10))
+            ax.yaxis.set_minor_locator(MultipleLocator(1))
             ax.legend()
 
         elif "velocity" in key:
