@@ -4,6 +4,22 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 
 
+class Colors:
+    """Color class for terminal output."""
+
+    RED = "\033[91m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    BLUE = "\033[94m"
+    MAGENTA = "\033[95m"
+    CYAN = "\033[96m"
+    WHITE = "\033[97m"
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
+    END = "\033[0m"
+
+
 def load_float_data(bag_file: str, topic_names: list) -> dict:
     from pathlib import Path
     from rosbags.highlevel import AnyReader
@@ -30,6 +46,25 @@ def load_float_data(bag_file: str, topic_names: list) -> dict:
 
     dataset = {}
     with AnyReader([file_path]) as reader:
+        available_topics = list(conn.topic for conn in reader.connections)
+        print(
+            f"Available topics in ROS bag file:\n"
+            + "\n".join(f" - {topic}" for topic in sorted(available_topics))
+        )
+        print()
+        for topic_name in topic_names:
+            if topic_name not in available_topics:
+                print(
+                    f"{Colors.YELLOW}{Colors.BOLD}[Warning]{Colors.BOLD}{Colors.END}"
+                    f' Topic {Colors.YELLOW}{Colors.BOLD}"{topic_name}"{Colors.BOLD}{Colors.END}'
+                    f" is not available in the ROS bag file."
+                )
+                topic_names.remove(topic_name)
+        print(
+            f"The topic lists to be plotted"
+            f' are {Colors.GREEN}{Colors.BOLD}"{topic_names}"{Colors.BOLD}{Colors.END}'
+        )
+
         for topic_name in topic_names:
             dataset[topic_name] = []
             connections = [x for x in reader.connections if x.topic == topic_name]
@@ -101,15 +136,39 @@ def load_float_data(bag_file: str, topic_names: list) -> dict:
     return dataset
 
 
+# parsing arguments
+def parse_args():
+    """Parse command line arguments.
+
+    Returns
+    -------
+    argparse.Namespace
+        Parsed arguments
+    """
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Float data viewer (e.g. pressure, temperature, quaternion, magnetic field, velocity)"
+    )
+    parser.add_argument("bag_file", type=str, help="ROS bag file directory")
+    parser.add_argument(
+        "topic_names", type=str, nargs="+", help="Float data topic names"
+    )
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    topic_dict = {
+    topic_filter = {
         "RTK GPS velocity (m/s)": "/ublox/vel",
         "Normal GPS velocity (m/s)": "/ascen/vel",
         "AHRS quaternion (rad)": "/imu/data",
-        # "AHRS magnetic field (T)": "/imu/mag",
+        "AHRS magnetic field (T)": "/imu/mag",
         "ZED pressure (Pa)": "/zed/zed_node/atm_press",
         "ZED quaternion (rad)": "/zed/zed_node/imu/data",
         "ZED magnetic field (T)": "/zed/zed_node/imu/mag",
+        "Old ZED pressure (Pa)": "/zed2/zed_node/pressure",
+        "Old ZED quaternion (rad)": "/zed2/zed_node/imu/data",
+        "Old ZED magnetic field (T)": "/zed2/zed_node/imu/mag",
         "Barometer pressure (hPa)": "/magic_wand/pressure",
         "Barometer temperature (\N{DEGREE SIGN}C)": "/magic_wand/temperature",
     }
@@ -119,13 +178,24 @@ if __name__ == "__main__":
         "line_color": "blue",
     }
 
-    dataset = load_float_data(
-        "~/HYWC_linear_0819_2/",
-        list(topic_dict.values()),
-    )
+    # Parse arguments
+    args = parse_args()
+    bag_file = args.bag_file
+    topic_names = args.topic_names
+
+    print(f"* Bag_file: {bag_file}")
+    print(f"* Topic_names: {topic_names}", end="\n\n")
+
+    # Load float data
+    topic_list = [
+        topic_name for topic_name in topic_names if topic_name in topic_filter.values()
+    ]
+    dataset = load_float_data(bag_file, topic_list)
 
     # Draw float data
-    for key, value in topic_dict.items():
+    for key, value in topic_filter.items():
+        if value not in dataset.keys():
+            continue
         fig, ax = plt.subplots()
 
         ax.set_xlabel("Time [sec]")
@@ -145,81 +215,43 @@ if __name__ == "__main__":
             ax.yaxis.set_minor_locator(MultipleLocator(0.02))
 
         elif "quaternion" in key:
-            ax.plot(
-                [time for time, *_ in dataset[value]],
-                [x for _, (x, y, z, w), _ in dataset[value]],
-                label="x",
-                color="red",
-                linewidth=visualization_options["line_width"],
-            )
-            ax.plot(
-                [time for time, *_ in dataset[value]],
-                [y for _, (x, y, z, w), _ in dataset[value]],
-                label="y",
-                color="green",
-                linewidth=visualization_options["line_width"],
-            )
-            ax.plot(
-                [time for time, *_ in dataset[value]],
-                [z for _, (x, y, z, w), _ in dataset[value]],
-                label="z",
-                color="blue",
-                linewidth=visualization_options["line_width"],
-            )
-            ax.plot(
-                [time for time, *_ in dataset[value]],
-                [w for _, (x, y, z, w), _ in dataset[value]],
-                label="w",
-                color="black",
-                linewidth=visualization_options["line_width"],
-            )
+            for i in range(4):
+                ax.plot(
+                    [time - dataset[value][0][0] for time, *_ in dataset[value]],
+                    [data[i] for _, data, _ in dataset[value]],
+                    label=f"{['x', 'y', 'z', 'w'][i]}",
+                    color=["red", "green", "blue", "black"][i],
+                    linewidth=visualization_options["line_width"],
+                )
             ax.yaxis.set_major_locator(MultipleLocator(0.1))
             ax.yaxis.set_major_formatter(FormatStrFormatter("%3.2f"))
             ax.yaxis.set_minor_locator(MultipleLocator(0.05))
             ax.legend()
 
         elif "magnetic" in key:
-            ax.plot(
-                [time for time, *_ in dataset[value]],
-                [x for _, (x, y, z), _ in dataset[value]],
-                label="x",
-                color="red",
-                linewidth=visualization_options["line_width"],
-            )
-            ax.plot(
-                [time for time, *_ in dataset[value]],
-                [y for _, (x, y, z), _ in dataset[value]],
-                label="y",
-                color="green",
-                linewidth=visualization_options["line_width"],
-            )
-            ax.plot(
-                [time for time, *_ in dataset[value]],
-                [z for _, (x, y, z), _ in dataset[value]],
-                label="z",
-                color="blue",
-                linewidth=visualization_options["line_width"],
-            )
+            for i in range(3):
+                ax.plot(
+                    [time - dataset[value][0][0] for time, *_ in dataset[value]],
+                    [data[i] for _, data, _ in dataset[value]],
+                    label=f"{['x', 'y', 'z'][i]}",
+                    color=["red", "green", "blue"][i],
+                    linewidth=visualization_options["line_width"],
+                )
             ax.yaxis.set_major_locator(MultipleLocator(0.0005))
             ax.yaxis.set_major_formatter(FormatStrFormatter("%5.4f"))
             ax.yaxis.set_minor_locator(MultipleLocator(0.0001))
             ax.legend()
 
         elif "velocity" in key:
-            ax.plot(
-                [time for time, *_ in dataset[value]],
-                [x for _, (x, y, z), *_ in dataset[value]],
-                label="linear_x",
-                color="red",
-                linewidth=visualization_options["line_width"],
-            )
-            ax.plot(
-                [time for time, *_ in dataset[value]],
-                [y for _, (x, y, z), *_ in dataset[value]],
-                label="linear_y",
-                color="green",
-                linewidth=visualization_options["line_width"],
-            )
+            for i in range(3):
+                ax.plot(
+                    [time for time, *_ in dataset[value]],
+                    [data[i] for _, data, _ in dataset[value]],
+                    label=f"{['x', 'y', 'z'][i]}",
+                    color=["red", "green", "blue"][i],
+                    linewidth=visualization_options["line_width"],
+                )
+
             ax.yaxis.set_major_locator(MultipleLocator(0.5))
             ax.yaxis.set_major_formatter(FormatStrFormatter("%3.1f"))
             ax.yaxis.set_minor_locator(MultipleLocator(0.1))
