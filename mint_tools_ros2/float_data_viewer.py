@@ -132,6 +132,27 @@ def load_float_data(bag_file: str, topic_names: list) -> dict:
                     dataset[topic_name].append(
                         (time_sec, msg.temperature, msg.variance)
                     )
+                elif connection.msgtype == "geometry_msgs/msg/PoseStamped":
+                    dataset[topic_name].append(
+                        (
+                            time_sec,
+                            np.array(
+                                [
+                                    msg.pose.position.x,
+                                    msg.pose.position.y,
+                                    msg.pose.position.z,
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    msg.pose.orientation.x,
+                                    msg.pose.orientation.y,
+                                    msg.pose.orientation.z,
+                                    msg.pose.orientation.w,
+                                ]
+                            ),
+                        )
+                    )
 
     return dataset
 
@@ -171,6 +192,7 @@ if __name__ == "__main__":
         "Old ZED magnetic field [uT]": "/zed2/zed_node/imu/mag",
         "Barometer pressure [hPa]": "/magic_wand/pressure",
         "Barometer temperature [\N{DEGREE SIGN}C]": "/magic_wand/temperature",
+        "Wire encoder position [m]": "/jjjwire_robot_position",
     }
 
     visualization_options = {
@@ -255,6 +277,36 @@ if __name__ == "__main__":
             ax.yaxis.set_major_formatter(FormatStrFormatter("%3.1f"))
             ax.yaxis.set_minor_locator(MultipleLocator(0.1))
             ax.legend()
+
+        elif "position" in key:
+            xyz_data = np.array([data for _, data, _ in dataset[value]])
+
+            # XY plot
+            ax.plot(
+                xyz_data[:, 0],
+                xyz_data[:, 1],
+                color=visualization_options["line_color"],
+                linewidth=visualization_options["line_width"],
+            )
+            ax.set_xlabel("X [m]")
+            ax.set_ylabel("Y [m]")
+            ax.axis("equal")
+            ax.grid(True)
+            ax.set_title(f"{key} XY plot")
+
+            # Time Z plot
+            fig, ax = plt.subplots()
+            t0 = dataset[value][0][0]
+            ax.plot(
+                [time - t0 for time, *_ in dataset[value]],
+                xyz_data[:, 2],
+                color=visualization_options["line_color"],
+                linewidth=visualization_options["line_width"],
+            )
+            ax.set_xlabel("Time [sec]")
+            ax.set_ylabel("Z [m]")
+            ax.grid(True)
+            ax.set_title(f"{key} Time-Z plot")
 
         plt.tight_layout()
 
