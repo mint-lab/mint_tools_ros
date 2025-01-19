@@ -73,9 +73,9 @@ if __name__ == "__main__":
                             gps_mode["DGPS"]
                             if mode == 1
                             else (
-                                gps_mode["RTK-FIX"]
+                                gps_mode["RTK-Fix"]
                                 if mode == 2 and cov[-1] < args.alt_cov_threshold
-                                else gps_mode["RTK-FLOAT"]
+                                else gps_mode["RTK-Float"]
                             )
                         )
                     ),
