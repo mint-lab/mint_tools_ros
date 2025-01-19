@@ -30,7 +30,18 @@ if __name__ == "__main__":
     parser.add_argument(
         "--line_weight", "-w", type=float, default=2, help="GPS line weight"
     )
+    parser.add_argument(
+        "--alt_cov_threshold",
+        "-t",
+        type=float,
+        default=0.014,
+        help="Altitude covariance threshold",
+    )
     args = parser.parse_args()
+
+    label_fontsize = 18
+    legend_fontsize = 16
+    ticks_fontsize = 16
 
     # Load GPS data from a ROS bag file
     gps_data = load_gps_data(args.ros_bag_file, args.ros_topic_name)
@@ -39,8 +50,8 @@ if __name__ == "__main__":
     gps_mode = {
         "SPS": "black",
         "DGPS": "red",
-        "RTK-FLOAT": "blue",
-        "RTK-FIX": "green",
+        "RTK-Float": "blue",
+        "RTK-Fix": "green",
     }
 
     # Convert GPS data from `epsg_latlon` to `epsg_metric`
@@ -63,7 +74,7 @@ if __name__ == "__main__":
                             if mode == 1
                             else (
                                 gps_mode["RTK-FIX"]
-                                if mode == 2 and cov[0] < 0.1
+                                if mode == 2 and cov[-1] < args.alt_cov_threshold
                                 else gps_mode["RTK-FLOAT"]
                             )
                         )
@@ -74,7 +85,10 @@ if __name__ == "__main__":
         ],
         dtype=object,
     )
+
+    # Prepare the data for plotting
     xyz_data[:, 0:4] -= xyz_data[0, 0:4]  # Set the first data as the origin
+    xyz_data[:, 0] /= 1e9  # Convert time from ns to s
 
     # Draw the 2D XY plot
     fig = plt.figure()
@@ -84,16 +98,22 @@ if __name__ == "__main__":
         color=xyz_data[:, 6],
         linewidth=args.line_weight,
     )
-    plt.xlabel("X [m]")
-    plt.ylabel("Y [m]")
+    plt.xlabel(r"$X\,[m]$", fontsize=label_fontsize)
+    plt.ylabel(r"$Y\,[m]$", fontsize=label_fontsize)
+    plt.xticks(fontsize=ticks_fontsize)
+    # Set num of ticks for y-axis to 5
+    plt.locator_params(axis="y", nbins=5)
+    plt.yticks(fontsize=ticks_fontsize)
     plt.grid(True)
+    plt.title(rf"GPS data $X$-$Y$ plot")
     plt.axis("equal")
     plt.tight_layout()
     plt.legend(
         handles=[
             plt.Line2D([0], [0], marker="o", linestyle="None", color=color, label=mode)
             for mode, color in gps_mode.items()
-        ]
+        ],
+        fontsize=legend_fontsize,
     )
 
     # Draw the 2D time-Z plot
@@ -104,15 +124,19 @@ if __name__ == "__main__":
         color=xyz_data[:, 6],
         linewidth=args.line_weight,
     )
-    plt.xlabel("Time [s]")
-    plt.ylabel("Z [m]")
+    plt.xlabel(r"$Time\,[s]$", fontsize=label_fontsize)
+    plt.ylabel(r"$Z\,[m]$", fontsize=label_fontsize)
+    plt.xticks(fontsize=ticks_fontsize)
+    plt.yticks(fontsize=ticks_fontsize)
     plt.grid(True)
+    plt.title(rf"GPS data $Time$-$Z$ plot")
     plt.tight_layout()
     plt.legend(
         handles=[
             plt.Line2D([0], [0], marker="o", linestyle="None", color=color, label=mode)
             for mode, color in gps_mode.items()
-        ]
+        ],
+        fontsize=legend_fontsize,
     )
 
     # Draw the 3D XYZ plot
@@ -125,10 +149,11 @@ if __name__ == "__main__":
         color=xyz_data[:, 6],
         linewidth=args.line_weight,
     )
-    ax.set_xlabel("X [m]")
-    ax.set_ylabel("Y [m]")
-    ax.set_zlabel("Z [m]")
+    ax.set_xlabel(r"$X\,[m]$")
+    ax.set_ylabel(r"$Y\,[m]$")
+    ax.set_zlabel(r"$Z\,[m]$")
     ax.grid(True)
+    ax.set_title(rf"GPS data $X$-$Y$-$Z$ plot")
     plt.tight_layout()
     ax.legend(
         handles=[
