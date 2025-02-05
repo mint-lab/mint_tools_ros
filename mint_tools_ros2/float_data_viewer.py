@@ -175,6 +175,13 @@ def parse_args():
     parser.add_argument(
         "topic_names", type=str, nargs="+", help="Float data topic names"
     )
+    parser.add_argument(
+        "--line_width",
+        "-l",
+        type=int,
+        default=2,
+        help="Line width for the plot (default: 2)",
+    )
     return parser.parse_args()
 
 
@@ -198,13 +205,18 @@ if __name__ == "__main__":
     visualization_options = {
         "line_width": 2,
         "line_color": "blue",
+        "lable_fontsize": 18,
+        "legend_fontsize": 16,
+        "ticks_fontsize": 16,
     }
 
     # Parse arguments
     args = parse_args()
     bag_file = args.bag_file
     topic_names = args.topic_names
+    line_width = args.line_width
 
+    visualization_options["line_width"] = line_width
     print(f"* Bag_file: {bag_file}")
     print(f"* Topic_names: {topic_names}", end="\n\n")
 
@@ -220,10 +232,19 @@ if __name__ == "__main__":
             continue
         fig, ax = plt.subplots()
 
-        ax.set_xlabel("Time [sec]")
-        ax.set_ylabel(key)
+        ax.set_xlabel(
+            r"$Time\,[sec]$", fontsize=visualization_options["lable_fontsize"]
+        )
+        # Set num of x-ticks to 10
+        # ax.xaxis.set_major_locator(plt.MaxNLocator(10))
+        # ax.set_ylabel(rf"${key}$")
         ax.set_title(value)
         ax.grid(color="gray", linestyle="--", alpha=0.2)
+
+        # Set the time origin to the first data
+        t0 = dataset[value][0][0]
+        for i in range(len(dataset[value])):
+            dataset[value][i] = (dataset[value][i][0] - t0, *dataset[value][i][1:])
 
         if "pressure" in key or "temperature" in key:
             ax.plot(
@@ -232,9 +253,14 @@ if __name__ == "__main__":
                 color=visualization_options["line_color"],
                 linewidth=visualization_options["line_width"],
             )
+            ax.set_ylabel(
+                rf"$Pressure \, [hPa]$",
+                fontsize=visualization_options["lable_fontsize"],
+            )
             ax.yaxis.set_major_locator(MultipleLocator(0.1))
             ax.yaxis.set_major_formatter(FormatStrFormatter("%4.1f"))
-            ax.yaxis.set_minor_locator(MultipleLocator(0.02))
+            # ax.yaxis.set_minor_locator(MultipleLocator(0.02))
+            # Set ticks fontsize
 
         elif "quaternion" in key:
             for i in range(4):
@@ -248,7 +274,7 @@ if __name__ == "__main__":
             ax.yaxis.set_major_locator(MultipleLocator(0.1))
             ax.yaxis.set_major_formatter(FormatStrFormatter("%3.2f"))
             ax.yaxis.set_minor_locator(MultipleLocator(0.05))
-            ax.legend()
+            ax.legend(fontsize=visualization_options["legend_fontsize"])
 
         elif "magnetic" in key:
             for i in range(3):
@@ -261,7 +287,7 @@ if __name__ == "__main__":
                 )
             ax.yaxis.set_major_locator(MultipleLocator(10))
             ax.yaxis.set_minor_locator(MultipleLocator(1))
-            ax.legend()
+            ax.legend(fontsize=visualization_options["legend_fontsize"])
 
         elif "velocity" in key:
             for i in range(3):
@@ -276,7 +302,7 @@ if __name__ == "__main__":
             ax.yaxis.set_major_locator(MultipleLocator(0.5))
             ax.yaxis.set_major_formatter(FormatStrFormatter("%3.1f"))
             ax.yaxis.set_minor_locator(MultipleLocator(0.1))
-            ax.legend()
+            ax.legend(fontsize=visualization_options["legend_fontsize"])
 
         elif "position" in key:
             xyz_data = np.array([data for _, data, _ in dataset[value]])
@@ -308,6 +334,8 @@ if __name__ == "__main__":
             ax.grid(True)
             ax.set_title(f"{key} Time-Z plot")
 
+        ax.xaxis.set_tick_params(labelsize=visualization_options["ticks_fontsize"])
+        ax.yaxis.set_tick_params(labelsize=visualization_options["ticks_fontsize"])
         plt.tight_layout()
 
     plt.show()
