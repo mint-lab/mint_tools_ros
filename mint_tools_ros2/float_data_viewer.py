@@ -232,13 +232,11 @@ if __name__ == "__main__":
             continue
         fig, ax = plt.subplots()
 
-        ax.set_xlabel(
-            r"$Time\,[sec]$", fontsize=visualization_options["lable_fontsize"]
-        )
+        ax.set_xlabel(r"$Time\,[s]$", fontsize=visualization_options["lable_fontsize"])
         # Set num of x-ticks to 10
         # ax.xaxis.set_major_locator(plt.MaxNLocator(10))
         # ax.set_ylabel(rf"${key}$")
-        ax.set_title(value)
+        # ax.set_title(value)
         ax.grid(color="gray", linestyle="--", alpha=0.2)
 
         # Set the time origin to the first data
@@ -254,15 +252,18 @@ if __name__ == "__main__":
                 linewidth=visualization_options["line_width"],
             )
             ax.set_ylabel(
-                rf"$Pressure \, [hPa]$",
+                rf"$P \, [hPa]$",
                 fontsize=visualization_options["lable_fontsize"],
             )
-            ax.yaxis.set_major_locator(MultipleLocator(0.1))
+            ax.yaxis.set_major_locator(MultipleLocator(0.2))
             ax.yaxis.set_major_formatter(FormatStrFormatter("%4.1f"))
             # ax.yaxis.set_minor_locator(MultipleLocator(0.02))
             # Set ticks fontsize
 
         elif "quaternion" in key:
+            ax.hlines(
+                0, 0, (dataset[value][-1][0] - dataset[value][0][0]), "black", "--"
+            )
             for i in range(4):
                 ax.plot(
                     [time - dataset[value][0][0] for time, *_ in dataset[value]],
@@ -274,6 +275,33 @@ if __name__ == "__main__":
             ax.yaxis.set_major_locator(MultipleLocator(0.1))
             ax.yaxis.set_major_formatter(FormatStrFormatter("%3.2f"))
             ax.yaxis.set_minor_locator(MultipleLocator(0.05))
+            ax.grid(True)
+            plt.tight_layout()
+            ax.legend(fontsize=visualization_options["legend_fontsize"])
+
+            #! Quaternions to Euler angles
+            from scipy.spatial.transform import Rotation as R
+
+            euler_angles = R.from_quat(
+                [data for _, data, _ in dataset[value]]
+            ).as_euler("xyz", degrees=True)
+            fig, ax = plt.subplots()
+            ax.hlines(
+                0, 0, (dataset[value][-1][0] - dataset[value][0][0]), "black", "--"
+            )
+            for i in range(3):
+                ax.plot(
+                    [time - dataset[value][0][0] for time, *_ in dataset[value]],
+                    euler_angles[:, i],
+                    label=f"{['roll', 'pitch', 'yaw'][i]}",
+                    color=["red", "green", "blue"][i],
+                    linewidth=visualization_options["line_width"],
+                )
+            ax.yaxis.set_major_locator(MultipleLocator(10))
+            ax.yaxis.set_major_formatter(FormatStrFormatter("%3.1f"))
+            ax.yaxis.set_minor_locator(MultipleLocator(1))
+            ax.grid(True)
+            plt.tight_layout()
             ax.legend(fontsize=visualization_options["legend_fontsize"])
 
         elif "magnetic" in key:
@@ -329,7 +357,7 @@ if __name__ == "__main__":
                 color=visualization_options["line_color"],
                 linewidth=visualization_options["line_width"],
             )
-            ax.set_xlabel("Time [sec]")
+            ax.set_xlabel("Time [s]")
             ax.set_ylabel("Z [m]")
             ax.grid(True)
             ax.set_title(f"{key} Time-Z plot")
